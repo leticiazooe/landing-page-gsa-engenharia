@@ -2,6 +2,7 @@
   "name": "gsa-engenharia",
   "version": "0.1.0",
   "private": true,
+  "displayName": "GSA Engenharia",
   "engines": {
     "node": ">=22.13.0"
   },
@@ -39,6 +40,5 @@
     "vite": "8.0.13",
     "wrangler": "4.92.0"
   },
-  "type": "module",
-  "displayName": "GSA Engenharia"
+  "type": "module"
 }
