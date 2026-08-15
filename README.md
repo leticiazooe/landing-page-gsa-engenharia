@@ -23,10 +23,6 @@ A experiência foi construída para comunicar precisão, confiabilidade e capaci
 
 O site apresenta desde a proposta de valor da empresa até suas especialidades, projetos selecionados, método de trabalho, tecnologias utilizadas e um formulário de contato para novos projetos.
 
-## Preview
-
-![GSA Engenharia — Preview](docs/screenshots/gsa-preview.jpg)
-
 ## Principais seções
 
 - **Hero institucional** — posicionamento da GSA, proposta de valor e CTAs principais.
@@ -37,12 +33,6 @@ O site apresenta desde a proposta de valor da empresa até suas especialidades, 
 - **Tecnologia aplicada** — ferramentas de engenharia utilizadas nos projetos.
 - **Setores de atuação** — automotivo, mineração, ferroviário, estruturas metálicas, automação industrial e infraestrutura.
 - **Contato comercial** — formulário para solicitação de análise inicial do projeto.
-
-## Screenshots
-
-O preview abaixo reúne a página inicial, a vitrine de projetos e o bloco do método GSA.
-
-![Preview completo da GSA Engenharia](docs/screenshots/gsa-preview.jpg)
 
 ## Tecnologias
 
@@ -82,7 +72,7 @@ O projeto trabalha uma linguagem visual inspirada em engenharia industrial e doc
 - Navegação por âncoras
 - Hero com composição industrial e blueprint
 - Hierarquia tipográfica de alto contraste
-- Cards de projetos com imagens reais
+- Cards de projetos
 - Animação de entrada no hero
 - Linha de varredura no bloco BIM
 - Estados de hover em serviços e projetos
@@ -100,8 +90,6 @@ landing-page-gsa-engenharia/
 │   ├── layout.tsx
 │   └── page.tsx
 ├── db/
-├── docs/
-│   └── screenshots/
 ├── drizzle/
 ├── examples/
 ├── public/
