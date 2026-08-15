@@ -111,6 +111,7 @@ landing-page-gsa-engenharia/
 ├── tests/
 ├── worker/
 ├── package.json
+├── package-lock.json
 ├── next.config.ts
 ├── vite.config.ts
 └── README.md
@@ -128,7 +129,7 @@ landing-page-gsa-engenharia/
 ```bash
 git clone https://github.com/leticiazooe/landing-page-gsa-engenharia.git
 cd landing-page-gsa-engenharia
-npm install
+npm ci
 ```
 
 ### Ambiente de desenvolvimento
@@ -159,7 +160,7 @@ npm run lint
 
 | Comando | Descrição |
 |---|---|
-| `npm run install:ci` | Instala as dependências do projeto |
+| `npm run install:ci` | Executa a instalação CI protegida e validada pelo projeto |
 | `npm run dev` | Inicia o ambiente de desenvolvimento |
 | `npm run build` | Gera e valida o build |
 | `npm run start` | Inicia a aplicação após o build |
