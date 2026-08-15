@@ -1,0 +1,28 @@
+name: Verify Cloudflare build
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Build
+        run: npm run build
+      - name: Show deployment artifact
+        run: |
+          echo "--- dist ---"
+          find dist -maxdepth 3 -type f | sort | head -200
+          echo "--- wrangler configs ---"
+          find dist -iname 'wrangler*.json*' -o -iname 'wrangler*.toml' | sort
