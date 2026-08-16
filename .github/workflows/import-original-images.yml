@@ -1,0 +1,112 @@
+name: Import original GSA images
+
+on:
+  push:
+    branches: [image-hq-staging]
+    paths:
+      - '.image-import/TRIGGER_ORIGINALS'
+
+permissions:
+  contents: write
+
+jobs:
+  import-images:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout staging branch
+        uses: actions/checkout@v4
+        with:
+          ref: image-hq-staging
+
+      - name: Download original GSA images
+        shell: bash
+        run: |
+          set -euo pipefail
+          base='https://raw.githubusercontent.com/leticiazooe/landing-page-gsa/main/public/projects'
+          mkdir -p public/projects
+
+          for file in \
+            hero-industria.jpg \
+            ponte-ferroviaria.jpg \
+            galpao-mineracao.jpg \
+            fea-gripper.jpg \
+            plataforma.jpg \
+            modelagem-bim.jpg \
+            robotica.jpg
+          do
+            echo "Downloading ${file}..."
+            curl --fail --location --retry 3 --silent --show-error \
+              "${base}/${file}" \
+              --output "public/projects/${file}"
+          done
+
+      - name: Validate originals
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+
+          expected = {
+              'hero-industria.jpg': (100_000, 1200, 700),
+              'ponte-ferroviaria.jpg': (100_000, 1000, 1000),
+              'galpao-mineracao.jpg': (20_000, 250, 180),
+              'fea-gripper.jpg': (40_000, 400, 180),
+              'plataforma.jpg': (20_000, 250, 150),
+              'modelagem-bim.jpg': (100_000, 800, 500),
+              'robotica.jpg': (150_000, 1200, 700),
+          }
+
+          for name, (min_bytes, min_w, min_h) in expected.items():
+              p = Path('public/projects') / name
+              if not p.exists():
+                  raise SystemExit(f'Missing {p}')
+              size = p.stat().st_size
+              if size < min_bytes:
+                  raise SystemExit(f'{name}: file too small ({size} bytes)')
+              with Image.open(p) as im:
+                  w, h = im.size
+              if w < min_w or h < min_h:
+                  raise SystemExit(f'{name}: unexpected dimensions {w}x{h}')
+              print(f'OK {name}: {size} bytes, {w}x{h}')
+          PY
+
+      - name: Point site to original JPG files
+        shell: bash
+        run: |
+          set -euo pipefail
+          sed -i 's/ponte-ferroviaria\.webp/ponte-ferroviaria.jpg/g' app/page.tsx
+          sed -i 's/galpao-mineracao\.webp/galpao-mineracao.jpg/g' app/page.tsx
+          sed -i 's/fea-gripper\.webp/fea-gripper.jpg/g' app/page.tsx
+          sed -i 's/plataforma\.webp/plataforma.jpg/g' app/page.tsx
+          sed -i 's/modelagem-bim\.webp/modelagem-bim.jpg/g' app/page.tsx
+          sed -i 's/robotica\.webp/robotica.jpg/g' app/page.tsx
+          sed -i 's/hero-industria\.webp/hero-industria.jpg/g' app/globals.css
+
+          rm -f public/projects/*.webp
+
+      - name: Install dependencies and build
+        run: |
+          npm ci
+          npm run build
+
+      - name: Commit validated result to staging
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf .image-import
+          rm -f .github/workflows/import-original-images.yml
+          rm -f .github/workflows/replace-hq-images.yml
+
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+
+          if git diff --cached --quiet; then
+            echo 'Nothing to commit.'
+            exit 0
+          fi
+
+          git commit -m 'fix: restaura imagens GSA em alta qualidade'
+          git push origin HEAD:image-hq-staging
