@@ -1,0 +1,105 @@
+name: Import original GSA images v2
+
+on:
+  push:
+    branches: [image-hq-staging]
+    paths:
+      - '.image-import/TRIGGER_ORIGINALS_V2'
+
+permissions:
+  contents: write
+
+jobs:
+  import-images:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout staging branch
+        uses: actions/checkout@v4
+        with:
+          ref: image-hq-staging
+
+      - name: Download original GSA images
+        shell: bash
+        run: |
+          set -euo pipefail
+          base='https://raw.githubusercontent.com/leticiazooe/landing-page-gsa/main/public/projects'
+          mkdir -p public/projects
+
+          for file in \
+            hero-industria.jpg \
+            ponte-ferroviaria.jpg \
+            galpao-mineracao.jpg \
+            fea-gripper.jpg \
+            plataforma.jpg \
+            modelagem-bim.jpg \
+            robotica.jpg
+          do
+            echo "Downloading ${file}..."
+            curl --fail --location --retry 3 --silent --show-error \
+              "${base}/${file}" \
+              --output "public/projects/${file}"
+            file "public/projects/${file}"
+          done
+
+      - name: Validate original file sizes
+        shell: bash
+        run: |
+          set -euo pipefail
+          check_size() {
+            file="$1"
+            min="$2"
+            actual="$(stat -c%s "public/projects/$file")"
+            echo "$file: $actual bytes"
+            if [ "$actual" -lt "$min" ]; then
+              echo "$file is smaller than expected" >&2
+              exit 1
+            fi
+          }
+
+          check_size hero-industria.jpg 100000
+          check_size ponte-ferroviaria.jpg 100000
+          check_size galpao-mineracao.jpg 20000
+          check_size fea-gripper.jpg 40000
+          check_size plataforma.jpg 20000
+          check_size modelagem-bim.jpg 100000
+          check_size robotica.jpg 150000
+
+      - name: Point site to original JPG files
+        shell: bash
+        run: |
+          set -euo pipefail
+          sed -i 's/ponte-ferroviaria\.webp/ponte-ferroviaria.jpg/g' app/page.tsx
+          sed -i 's/galpao-mineracao\.webp/galpao-mineracao.jpg/g' app/page.tsx
+          sed -i 's/fea-gripper\.webp/fea-gripper.jpg/g' app/page.tsx
+          sed -i 's/plataforma\.webp/plataforma.jpg/g' app/page.tsx
+          sed -i 's/modelagem-bim\.webp/modelagem-bim.jpg/g' app/page.tsx
+          sed -i 's/robotica\.webp/robotica.jpg/g' app/page.tsx
+          sed -i 's/hero-industria\.webp/hero-industria.jpg/g' app/globals.css
+          rm -f public/projects/*.webp
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Commit validated result to staging
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf .image-import
+          rm -f .github/workflows/import-original-images.yml
+          rm -f .github/workflows/import-original-images-v2.yml
+          rm -f .github/workflows/replace-hq-images.yml
+
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+
+          if git diff --cached --quiet; then
+            echo 'Nothing to commit.'
+            exit 0
+          fi
+
+          git commit -m 'fix: restaura imagens GSA em alta qualidade'
+          git push origin HEAD:image-hq-staging
